@@ -23,28 +23,49 @@ class CNN(nn.Module):
         '''
         4 blocks of convolution layers + pooling
         + ReLU after layers
+        + Flattening 
         '''
-        # Block 1
 
+        # Block 1
         self.convolution1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
         self.pool1 = nn.MaxPool2d(2, stride=2)
 
         # Block 2
-
         self.convolution2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.pool2 = nn.MaxPool2d(2, stride=2)
 
         # Block 3
-
         self.convolution3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.pool3 = nn.MaxPool2d(2, stride=2)
 
         # Block 4
-
         self.convolution4 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
         self.pool4 = nn.MaxPool2d(2, stride=2)
 
         # ReLU - implement into the forward function
-
         self.relu = nn.ReLU()
 
+        # Flattening
+        self.flatten = nn.Flatten()
+    
+
+    '''
+    Forward function
+    '''
+
+    def forward(self, l):
+
+        # Block 1
+        l = self.pool1(self.relu(self.convolution1(l)))
+
+        # Block 2
+        l = self.pool2(self.relu(self.convolution2(l)))
+
+        # Block 3
+        l = self.pool3(self.relu(self.convolution3(l)))
+
+        # Block 4
+        l = self.pool4(self.relu(self.convolution4(l)))
+
+        # Flattening
+        l = self.flatten(l)
