@@ -47,6 +47,13 @@ class CNN(nn.Module):
 
         # Flattening
         self.flatten = nn.Flatten()
+
+        # Creating fully connected layer: 256 channels * 14x14 flattened image = 50176
+        # 50176 -> 512 as 512 = 2^9 -> faster
+        self.connectedlayer1 = nn.Linear(50176, 512)
+        
+        # 512 -> 37 (breeds). Final connected layer
+        self.connectedlayer2 = nn.Linear(512, num_classes)
     
 
     '''
@@ -69,3 +76,12 @@ class CNN(nn.Module):
 
         # Flattening
         l = self.flatten(l)
+
+        # Final output
+        l = self.connectedlayer1(l)
+        l = self.relu(l)
+        l = self.connectedlayer2(l)
+
+        return l
+
+
