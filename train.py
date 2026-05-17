@@ -8,16 +8,11 @@ import random
 
 from model import CNN
 
-# Using CUDA if available
-if torch.cuda.is_available():
-    device = "cuda"
-else:
-    device = "cpu"
-
 # Defining the image transformation (224x224)
 image_transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),  # Standard normalisation values
 ])
 
 # Loading training data
@@ -38,10 +33,10 @@ random.shuffle(values)
 # Splitting the indices 80/20
 training_indices = []
 validation_indices = []
-SPLIT_VALUE = 3000
+split_value = int(0.8 * len(train_dataset))
 
 for i in range(len(values)):
-    if i < SPLIT_VALUE:
+    if i < split_value:
         training_indices.append(values[i])
     else:
         validation_indices.append(values[i])
@@ -50,7 +45,6 @@ for i in range(len(values)):
 # Compiling the information of the image and its value
 training_data = Subset(train_dataset, training_indices)
 validation_data = Subset(train_dataset, validation_indices)
-
 
 # Dataloader
 training_data_loader = DataLoader(training_data, batch_size=32, shuffle=True)
@@ -61,40 +55,51 @@ cnn = CNN(num_classes=37)
 # Computing the function for the loss function - cross entropy best for classification
 cross_entropy = nn.CrossEntropyLoss()
 
-# Optimsier - learning rate set to 0.001 as standard
+# Optimsier
 optimiser = optim.Adam(cnn.parameters(), lr=0.001)
-
 
 EPOCHS = 30
 
 # Training loop
 for epoch in range(EPOCHS):
+    cnn.train()
+    running_loss = 0.0
+
+    # Training loop
     for images, labels in training_data_loader:
         
-        # Training loop
         # Forward propogation
         forward_prop = cnn(images)
 
         # Compute loss
         loss = cross_entropy(forward_prop, labels)
 
-        # Back propogation
-        gradient = optimiser.zero_grad(set_to_none=True)
-        loss.backward(gradient)
+        # Backpropogation
+        optimiser.zero_grad()
+        loss.backward()
         optimiser.step()
 
+        # Update running loss
+        running_loss += loss.item()
 
 
-'''
-import matplotlib.pyplot as plt
+    # Validation 
+    cnn.eval()
+    correct = 0
+    total = 0
 
-print("dataset size:", len(train_dataset))
+    with torch.no_grad():
+        for images, labels in validation_data_loader:
+            predicted = torch.argmax(cnn(images), dim=1)
 
-img, label = train_dataset[0]
-print("single image shape", img.shape)
+            # Calculating model accuracy
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    validation_accuracy = 100 * correct / total
+    average_loss = running_loss / len(validation_data_loader)
 
 
-images, labels = next(iter(dataloader))
-print("Batch image shape:", images.shape)  
-print("Batch labels shape:", labels.shape)
-'''
+    # Epoch, loss, accuracy
+    print(f"Epoch: {epoch} ; Loss: {average_loss:.4f} ;  Validation accuracy: {validation_accuracy:.2f}%")
+    
