@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn as nn
 from torchvision.datasets import OxfordIIITPet
@@ -10,12 +9,10 @@ Download set to False as all images have been downloaded locally
 Input images: 224x224x3
 '''
 
-'''
 dataset = OxfordIIITPet(
     root="./datasets",
     download=False
 )
-'''
 
 class CNN(nn.Module):
     def __init__(self, num_classes=37):
