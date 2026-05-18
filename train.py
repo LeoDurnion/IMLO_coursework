@@ -50,13 +50,15 @@ validation_data = Subset(train_dataset, validation_indices)
 training_data_loader = DataLoader(training_data, batch_size=32, shuffle=True)
 validation_data_loader = DataLoader(validation_data, batch_size=32, shuffle=False)
 
+optimal_validation_accuracy = 0.0
+
 cnn = CNN(num_classes=37)
 
 # Computing the function for the loss function - cross entropy best for classification
 cross_entropy = nn.CrossEntropyLoss()
 
 # Optimsier
-optimiser = optim.Adam(cnn.parameters(), lr=0.001)
+optimiser = optim.Adam(cnn.parameters(), lr=0.001, weight_decay=0.0001)
 
 EPOCHS = 30
 
@@ -97,9 +99,18 @@ for epoch in range(EPOCHS):
             correct += (predicted == labels).sum().item()
 
     validation_accuracy = 100 * correct / total
-    average_loss = running_loss / len(validation_data_loader)
+    average_loss = running_loss / len(training_data_loader)
 
+    # Updating to save the best model:
+    if validation_accuracy > optimal_validation_accuracy:
+        optimal_validation_accuracy = validation_accuracy
+
+        # Saving optimal model
+        torch.save(cnn.state_dict(), "optimal_model.pth")
+        print(f"New optimal saved, validation accuracy: {validation_accuracy:.2f}")
 
     # Epoch, loss, accuracy
     print(f"Epoch: {epoch} ; Loss: {average_loss:.4f} ;  Validation accuracy: {validation_accuracy:.2f}%")
+
+print(f"Optimal training accuracy: {optimal_validation_accuracy:.2f}")
     

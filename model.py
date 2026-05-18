@@ -53,6 +53,9 @@ class CNN(nn.Module):
 
         # Creating fully connected layers: 256 channels * 1x1 flattened image
         self.connectedlayer1 = nn.Linear(256, 128)
+
+        self.dropout = nn.Dropout(0.5)
+
         self.connectedlayer2 = nn.Linear(128, num_classes)
     
 
@@ -66,10 +69,10 @@ class CNN(nn.Module):
         l = self.pool2(self.relu(self.batchnorm2(self.convolution2(l))))
 
         # Block 3
-        l = self.pool1(self.relu(self.batchnorm3(self.convolution3(l))))
+        l = self.pool3(self.relu(self.batchnorm3(self.convolution3(l))))
 
         # Block 4
-        l = self.pool1(self.relu(self.batchnorm4(self.convolution4(l))))
+        l = self.pool4(self.relu(self.batchnorm4(self.convolution4(l))))
 
         # Pooling
         l = self.pool(l)
@@ -80,6 +83,7 @@ class CNN(nn.Module):
         # Final output
         l = self.connectedlayer1(l)
         l = self.relu(l)
+        l = self.dropout(l)
         l = self.connectedlayer2(l)
 
         return l
